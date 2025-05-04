@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <style>
+
+    </style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
+    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js" integrity="sha384-k6d4wzSIapyDyv1kpU366/PK5hCdSbCRGRCMv+eplOQJWyd1fbcAu9OCUj5zNLiq" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div id="playlist" class="container mt-3" style="position: fixed; left: 0; top: 0; height: 100vh; width: 350px; overflow-y: auto; background-color: #f8f9fa; border-right: 1px solid #ddd; padding: 10px;">
+        {{ range . }}
+        <div class="row">
+            <div class="col-12">
+                <div class="card mb-2" style="cursor: pointer;" onclick="onCardSelect(this , '{{ .Id }}')">
+                    <div class="row g-0">
+                        <div class="col-md-4">
+                            <img src="https://i.ytimg.com/vi/{{ .Id }}/hqdefault.jpg" class="img-fluid rounded-start" alt="{{ .Title }}">
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ .Title }}</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{ end }}
+        <!-- <div class="row">
+            <div class="col-12">
+                <div class="card mb-2" style="cursor: pointer;" onclick="onCardSelect('Video 1')">
+                    <div class="row g-0">
+                        <div class="col-md-4">
+                            <img src="https://placehold.co/600x400.png" class="img-fluid rounded-start" alt="Video 1">
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card-body">
+                                <h5 class="card-title">Video 1</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div> -->
+    </div>
+
+    <script>
+        var prev_selected = null;
+        function onCardSelect(selected , id) 
+        {
+            if(prev_selected)
+            {
+                prev_selected.style.backgroundColor = "";
+                prev_selected.style.color = "";        
+            }
+            prev_selected = selected;
+            selected.style.backgroundColor = "#007bff";
+            selected.style.color = "#fff";
+            document.getElementById("video_frame").src = "https://www.youtube.com/embed/" + id
+        }
+    </script>
+    <iframe id="video_frame" height="360" width="640" style="position: absolute; left: 350px; top: 0; width: calc(100% - 350px); height: 100vh;" frameborder="0" allowfullscreen>
+
+    </iframe>
+</body>
+</html>
