@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"io"
 	"net/http"
@@ -56,6 +57,23 @@ func main() {
 			return
 		}
 		err = temp.Execute(w, vides)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	})
+
+	http.HandleFunc("/thumbnail/{id}", func(w http.ResponseWriter, r *http.Request) {
+		id := r.PathValue("id")
+		resp, err := http.Get(fmt.Sprintf("https://i.ytimg.com/vi/%s/hqdefault.jpg", id))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer resp.Body.Close()
+		w.Header().Set("Content-Type", "image/jpeg")
+		w.WriteHeader(resp.StatusCode)
+		_, err = io.Copy(w, resp.Body)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
