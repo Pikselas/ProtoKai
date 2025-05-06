@@ -12,18 +12,30 @@
     <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js" integrity="sha384-k6d4wzSIapyDyv1kpU366/PK5hCdSbCRGRCMv+eplOQJWyd1fbcAu9OCUj5zNLiq" crossorigin="anonymous"></script>
 </head>
 <body>
-    <div id="playlist" class="container mt-3" style="position: fixed; left: 0; top: 0; height: 100vh; width: 350px; overflow-y: auto; background-color: #f8f9fa; border-right: 1px solid #ddd; padding: 10px;">
-        {{ range . }}
+    <div class="form-check form-switch" style="position: fixed; left: 40px; top: 0; z-index: 1000;">
+        <input class="form-check-input" type="checkbox" role="switch" id="randomizeSwitch" onclick="randomize = this.checked">
+        <label class="form-check-label" for="randomizeSwitch">Randomize</label>
+    </div>
+    <script>
+        // Reset the switch state to unchecked on page load
+        window.onload = function() 
+        {
+            const randomizeSwitch = document.getElementById('randomizeSwitch');
+            randomizeSwitch.checked = false;
+        };
+    </script>
+    <div id="playlist" class="container mt-3" style="position: fixed; left: 0; top: 25px; height: calc(100vh - 25px); width: 350px; overflow-y: auto; background-color: #f8f9fa; border-right: 1px solid #ddd; padding: 10px;">
+        {{ range $index , $itm := . }}
         <div class="row">
             <div class="col-12">
-                <div class="card mb-2" style="cursor: pointer;" onclick="onCardSelect(this , '{{ .Id }}')">
+                <div class="card mb-2" style="cursor: pointer;" onclick="onCardSelect(this , '{{ $itm.Id }}' , {{ $index }})">
                     <div class="row g-0">
                         <div class="col-md-4">
-                            <img src="/thumbnail/{{ .Id }}" class="img-fluid rounded-start" alt="{{ .Title }}">
+                            <img src="/thumbnail/{{ .Id }}" class="img-fluid rounded-start" alt="{{ $itm.Title }}">
                         </div>
                         <div class="col-md-8">
                             <div class="card-body">
-                                <h5 class="card-title">{{ .Title }}</h5>
+                                <h5 class="card-title">{{ $itm.Title }}</h5>
                             </div>
                         </div>
                     </div>
@@ -48,11 +60,17 @@
             </div>
         </div> -->
     </div>
-
+    <!-- <iframe id="video_frame" src="https://www.youtube.com/embed/iqysmS4lxwQ" height="360" width="640" style="position: absolute; left: 350px; top: 0; width: calc(100% - 350px); height: 100vh;" frameborder="0" allowfullscreen> -->
+    </iframe>
     <script>
+        var video_list = {{ . }};
         var prev_selected = null;
-        function onCardSelect(selected , id) 
+        var current_index = -1;
+        var player = null;
+        var randomize = false;
+        function onCardSelect(selected , id , index) 
         {
+            current_index = index;
             if(prev_selected)
             {
                 prev_selected.style.backgroundColor = "";
@@ -61,11 +79,79 @@
             prev_selected = selected;
             selected.style.backgroundColor = "#007bff";
             selected.style.color = "#fff";
-            document.getElementById("video_frame").src = "https://www.youtube.com/embed/" + id
+            // let frame = document.getElementById("video_frame");
+            // frame.src = "https://www.youtube.com/embed/" + id + "?enablejsapi=1&origin=http://localhost:8080";
+            
+            if(!player)
+            {
+                player = new YT.Player('player', {
+                    height: '390',
+                    width: '640',
+                    videoId: id,
+                    playerVars: {
+                        'playsinline': 1
+                    },
+                    events: {
+                        'onReady': (ev) => {ev.target.playVideo();},
+                        'onStateChange': (ev) => {
+                            if(ev.data == YT.PlayerState.ENDED)
+                            {
+                                if(randomize)
+                                {
+                                    randomNextVideo();
+                                }
+                                else
+                                {
+                                    nextVideo();
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            else
+            {
+                player.loadVideoById(id);
+            }
+        }
+        function nextVideo() 
+        {
+            if(current_index + 1 < video_list.length)
+            {
+                current_index++;
+                let next = video_list[current_index];
+                onCardSelect(document.getElementById("playlist").children[current_index].children[0].children[0] , next.Id , current_index);
+            }
+        }
+        function randomNextVideo()
+        {
+            current_index = Math.floor(Math.random() * video_list.length);
+            let next = video_list[current_index];
+            onCardSelect(document.getElementById("playlist").children[current_index].children[0].children[0] , next.Id , current_index);
+            document.getElementById("playlist").children[current_index].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
     </script>
-    <iframe id="video_frame" height="360" width="640" style="position: absolute; left: 350px; top: 0; width: calc(100% - 350px); height: 100vh;" frameborder="0" allowfullscreen>
+    <!-- <script src="static/iframe_api.js"></script> -->
+    <div id="player" style="position: absolute; left: 350px; top: 0; width: calc(100% - 350px); height: 100vh;"></div>
 
-    </iframe>
+    <script>
+      // 2. This code loads the IFrame Player API code asynchronously.
+      var tag = document.createElement('script');
+      tag.src = "static/iframe_api.js";
+      var firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    //   var player;
+    //   function onYouTubeIframeAPIReady() {
+    //     player = new YT.Player('player', {
+    //       height: '390',
+    //       width: '640',
+    //       videoId: 'M7lc1UVf-VE',
+    //       playerVars: {
+    //         'playsinline': 1
+    //       },
+    //     });
+    //   }
+    </script>
 </body>
 </html>

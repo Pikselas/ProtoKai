@@ -22,8 +22,14 @@ func get_videos_from_playlist(list_url string) ([]*youtube.PlaylistEntry, error)
 func main() {
 	var Videos []*youtube.PlaylistEntry
 
+	file_server := http.StripPrefix("/static/", http.FileServer(http.Dir("static")))
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "index.html")
+		if r.URL.Path == "/" {
+			http.ServeFile(w, r, "index.html")
+		} else {
+			file_server.ServeHTTP(w, r)
+		}
 	})
 
 	http.HandleFunc("/add_list", func(w http.ResponseWriter, r *http.Request) {
